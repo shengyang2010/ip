@@ -30,6 +30,7 @@ public class MyBFF {
         System.out.println();
         Scanner scanner = new Scanner(System.in);
         String[] tasks = new String[MAX_TASKS];
+        boolean[] completed = new boolean[MAX_TASKS];
         int taskCount = 0;
         while (scanner.hasNextLine()) {
             String command = scanner.nextLine();
@@ -43,7 +44,22 @@ public class MyBFF {
 
             if (command.equals("list")) {
                 for (int i = 0; i < taskCount; i++) {
-                    System.out.println(" " + (i + 1) + ". " + tasks[i]);
+                    String status = completed[i] ? "X" : " ";
+                    System.out.println(" " + (i + 1) + ".[" + status + "] " + tasks[i]);
+                }
+            } else if (command.startsWith("mark ")) {
+                String taskNumber = command.substring("mark ".length()).trim();
+                try {
+                    int index = Integer.parseInt(taskNumber) - 1;
+                    if (index >= 0 && index < taskCount) {
+                        completed[index] = true;
+                        System.out.println(" Nice! I've marked this task as done:");
+                        System.out.println("   [X] " + tasks[index]);
+                    } else {
+                        System.out.println(" Invalid task number.");
+                    }
+                } catch (NumberFormatException exception) {
+                    System.out.println(" Invalid task number.");
                 }
             } else if (taskCount < MAX_TASKS) {
                 tasks[taskCount] = command;
