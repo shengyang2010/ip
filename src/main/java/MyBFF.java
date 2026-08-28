@@ -61,6 +61,20 @@ public class MyBFF {
                 } catch (NumberFormatException exception) {
                     System.out.println(" Invalid task number.");
                 }
+            } else if (command.startsWith("unmark ")) {
+                String taskNumber = command.substring("unmark ".length()).trim();
+                try {
+                    int index = Integer.parseInt(taskNumber) - 1;
+                    if (index >= 0 && index < taskCount) {
+                        completed[index] = false;
+                        System.out.println(" OK, I've marked this task as not done yet:");
+                        System.out.println("   [ ] " + tasks[index]);
+                    } else {
+                        System.out.println(" Invalid task number.");
+                    }
+                } catch (NumberFormatException exception) {
+                    System.out.println(" Invalid task number.");
+                }
             } else if (taskCount < MAX_TASKS) {
                 tasks[taskCount] = command;
                 taskCount++;
