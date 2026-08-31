@@ -1,5 +1,12 @@
 # Project context
 
+## Java coding standard
+
+All Java code in this project must follow `.codex/skills/seedu-java-coding-standard/SKILL.md`, based on the SE-EDU basic + intermediate Java coding standard:
+https://se-education.org/guides/conventions/java/intermediate.html
+
+Apply it when adding, editing, reviewing, or refactoring Java code. Preserve behavior while correcting violations, and run the available build or tests after changes.
+
 This repository is a starter template for a greenfield Java project used in an introductory software engineering course in an undergraduate computer science program. Students use it as the starting point for their own projects.
 
 # Default user context
