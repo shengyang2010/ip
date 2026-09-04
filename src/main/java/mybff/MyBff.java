@@ -97,13 +97,15 @@ public class MyBff {
 
     private static Task createTask(String command) {
         if (command.startsWith(COMMAND_DEADLINE + " ")) {
-            String[] p = command.substring(COMMAND_DEADLINE.length()).trim().split(" /by ", 2);
-            return new Deadline(p[0], p.length == 2 ? p[1] : "");
+            String[] deadlineParts = command.substring(COMMAND_DEADLINE.length())
+                    .trim().split(" /by ", 2);
+            return new Deadline(deadlineParts[0], deadlineParts.length == 2 ? deadlineParts[1] : "");
         }
         if (command.startsWith(COMMAND_EVENT + " ")) {
-            String[] p = command.substring(COMMAND_EVENT.length()).trim().split(" /from ", 2);
-            String[] t = (p.length == 2 ? p[1] : "").split(" /to ", 2);
-            return new Event(p[0], t[0], t.length == 2 ? t[1] : "");
+            String[] eventParts = command.substring(COMMAND_EVENT.length())
+                    .trim().split(" /from ", 2);
+            String[] timeParts = (eventParts.length == 2 ? eventParts[1] : "").split(" /to ", 2);
+            return new Event(eventParts[0], timeParts[0], timeParts.length == 2 ? timeParts[1] : "");
         }
         String description = command.startsWith(COMMAND_TODO + " ")
                 ? command.substring(COMMAND_TODO.length()).trim() : command;
