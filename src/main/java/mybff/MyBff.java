@@ -1,13 +1,15 @@
+package mybff;
+
 import java.util.Scanner;
 
 /**
  * Runs the MyBFF chatbot.
  */
-public class MyBFF {
+public class MyBff {
     private static final String COMMAND_BYE = "bye";
     private static final String COMMAND_LIST = "list";
-    private static final String COMMAND_MARK = "mark ";
-    private static final String COMMAND_UNMARK = "unmark ";
+    private static final String COMMAND_MARK = "mark";
+    private static final String COMMAND_UNMARK = "unmark";
     private static final String SEPARATOR =
             "____________________________________________________________";
     private static final int MAX_TASKS = 100;
@@ -25,12 +27,7 @@ public class MyBFF {
      * @param args command-line arguments, which are not used
      */
     public static void main(String[] args) {
-        System.out.println(SEPARATOR);
-        System.out.println(BANNER);
-        System.out.println("Hello! I'm MyBFF.");
-        System.out.println("What can I do for you?");
-        System.out.println(SEPARATOR);
-        System.out.println();
+        printGreeting();
         Scanner scanner = new Scanner(System.in);
         Task[] tasks = new Task[MAX_TASKS];
         int taskCount = 0;
@@ -45,20 +42,13 @@ public class MyBFF {
             }
 
             if (command.equals(COMMAND_LIST)) {
-                for (int i = 0; i < taskCount; i++) {
-                    System.out.println(" " + (i + 1) + ".[" + tasks[i].getStatusIcon() + "] "
-                            + tasks[i].getDescription());
-                }
+                printTaskList(tasks, taskCount);
             } else if (command.startsWith(COMMAND_MARK)) {
                 processCompletionCommand(command, COMMAND_MARK, tasks, taskCount, true);
             } else if (command.startsWith(COMMAND_UNMARK)) {
                 processCompletionCommand(command, COMMAND_UNMARK, tasks, taskCount, false);
-            } else if (taskCount < MAX_TASKS) {
-                tasks[taskCount] = new Task(command);
-                taskCount++;
-                System.out.println(" added: " + command);
             } else {
-                System.out.println(" Your task list is full.");
+                taskCount = addTask(tasks, taskCount, command);
             }
             System.out.println(SEPARATOR);
             System.out.println();
@@ -66,14 +56,48 @@ public class MyBFF {
         scanner.close();
     }
 
+    /** Prints the chatbot banner and greeting. */
+    private static void printGreeting() {
+        System.out.println(SEPARATOR);
+        System.out.println(BANNER);
+        System.out.println("Hello! I'm MyBff.");
+        System.out.println("What can I do for you?");
+        System.out.println(SEPARATOR);
+        System.out.println();
+    }
+
+    /** Prints all stored tasks with their indexes and completion statuses. */
+    private static void printTaskList(Task[] tasks, int taskCount) {
+        for (int i = 0; i < taskCount; i++) {
+            System.out.println(" " + (i + 1) + ".[" + tasks[i].getStatusIcon() + "] "
+                    + tasks[i].getDescription());
+        }
+    }
+
+    /**
+     * Adds a task when the task list has capacity.
+     *
+     * @return the updated number of tasks
+     */
+    private static int addTask(Task[] tasks, int taskCount, String description) {
+        if (taskCount >= MAX_TASKS) {
+            System.out.println(" Your task list is full.");
+            return taskCount;
+        }
+
+        tasks[taskCount] = new Task(description);
+        System.out.println(" added: " + description);
+        return taskCount + 1;
+    }
+
     /** Processes a command that changes a task's completion status. */
     private static void processCompletionCommand(String command, String commandPrefix,
-            Task[] tasks, int taskCount, boolean markAsDone) {
+            Task[] tasks, int taskCount, boolean isMarkingAsDone) {
         String taskNumber = command.substring(commandPrefix.length()).trim();
         try {
             int index = Integer.parseInt(taskNumber) - 1;
             if (index >= 0 && index < taskCount) {
-                if (markAsDone) {
+                if (isMarkingAsDone) {
                     tasks[index].markAsDone();
                     System.out.println(" Nice! I've marked this task as done:");
                     System.out.println("   [X] " + tasks[index].getDescription());

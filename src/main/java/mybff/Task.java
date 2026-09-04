@@ -1,3 +1,5 @@
+package mybff;
+
 /**
  * Represents a task in the task list.
  */
@@ -29,7 +31,9 @@ public class Task {
         isDone = true;
     }
 
-    /** Marks this task as not done. */
+    /**
+     * Marks this task as not done.
+     */
     public void markAsNotDone() {
         isDone = false;
     }
