@@ -127,10 +127,10 @@ public class MyBff {
                     System.out.println("       [ ] " + tasks[index].getDescription());
                 }
             } else {
-                System.out.println(" Invalid task number.");
+                System.out.println("     Invalid task number.");
             }
         } catch (NumberFormatException exception) {
-            System.out.println(" Invalid task number.");
+            System.out.println("     Invalid task number.");
         }
     }
 }
