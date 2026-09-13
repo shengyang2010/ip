@@ -35,7 +35,8 @@ public class MyBff {
         Task[] tasks = new Task[MAX_TASKS];
         int taskCount = 0;
         while (scanner.hasNextLine()) {
-            String command = scanner.nextLine();
+            String command = scanner.nextLine().trim();
+            String commandWord = command.split("\\s+", 2)[0];
             System.out.println("    " + SEPARATOR);
 
             if (command.equals(COMMAND_BYE)) {
@@ -46,12 +47,16 @@ public class MyBff {
 
             if (command.equals(COMMAND_LIST)) {
                 printTaskList(tasks, taskCount);
-            } else if (command.startsWith(COMMAND_MARK)) {
+            } else if (commandWord.equals(COMMAND_MARK)) {
                 processCompletionCommand(command, COMMAND_MARK, tasks, taskCount, true);
-            } else if (command.startsWith(COMMAND_UNMARK)) {
+            } else if (commandWord.equals(COMMAND_UNMARK)) {
                 processCompletionCommand(command, COMMAND_UNMARK, tasks, taskCount, false);
             } else {
-                taskCount = addTask(tasks, taskCount, command);
+                try {
+                    taskCount = addTask(tasks, taskCount, command);
+                } catch (MyBffException exception) {
+                    System.out.println("     OOPS!!! " + exception.getMessage());
+                }
             }
             System.out.println("    " + SEPARATOR);
             System.out.println();
@@ -81,21 +86,28 @@ public class MyBff {
      * Adds a task when the task list has capacity.
      *
      * @return the updated number of tasks
+     * @throws MyBffException if the command is unknown or the todo description is empty
      */
-    private static int addTask(Task[] tasks, int taskCount, String command) {
+    private static int addTask(Task[] tasks, int taskCount, String command) throws MyBffException {
+        Task task = createTask(command);
         if (taskCount >= MAX_TASKS) {
             System.out.println(" Your task list is full.");
             return taskCount;
         }
 
-        tasks[taskCount] = createTask(command);
+        tasks[taskCount] = task;
         System.out.println("     Got it. I've added this task:");
         System.out.println("       " + tasks[taskCount]);
         System.out.println("     Now you have " + (taskCount + 1) + " tasks in the list.");
         return taskCount + 1;
     }
 
-    private static Task createTask(String command) {
+    /**
+     * Parses a task, rejecting empty todos and unknown commands.
+     *
+     * @throws MyBffException if the command is unknown or the todo description is empty
+     */
+    private static Task createTask(String command) throws MyBffException {
         if (command.startsWith(COMMAND_DEADLINE + " ")) {
             String[] deadlineParts = command.substring(COMMAND_DEADLINE.length())
                     .trim().split(" /by ", 2);
@@ -107,9 +119,15 @@ public class MyBff {
             String[] timeParts = (eventParts.length == 2 ? eventParts[1] : "").split(" /to ", 2);
             return new Event(eventParts[0], timeParts[0], timeParts.length == 2 ? timeParts[1] : "");
         }
-        String description = command.startsWith(COMMAND_TODO + " ")
-                ? command.substring(COMMAND_TODO.length()).trim() : command;
-        return new ToDo(description);
+        String[] commandParts = command.split("\\s+", 2);
+        if (commandParts[0].equals(COMMAND_TODO)) {
+            String description = commandParts.length == 2 ? commandParts[1].trim() : "";
+            if (description.isEmpty()) {
+                throw new MyBffException("The description of a todo cannot be empty.");
+            }
+            return new ToDo(description);
+        }
+        throw new MyBffException("I'm sorry, but I don't know what that means :-(");
     }
 
     /** Processes a command that changes a task's completion status. */

@@ -1,22 +1,29 @@
-# UI Test Plan
+# UI Test Sessions
 
-Run with Java 25. Compare command responses exactly, including separators and blank lines. The unchanged startup banner and greeting are excluded from comparison; full actual sessions are recorded separately. Every session ends with bye and checks the farewell.
+Java 25.0.4
 
-## Add a task
+## Add a task: True
 
-**Aim:** Accept and list a valid todo
-
-**Inputs:**
-
+Input:
 ```text
 todo read book
 list
 bye
 ```
-
-**Expected output (after greeting):**
-
+Actual output:
 ```text
+    ____________________________________________________________
+     __  ____   ______  ______ ______ 
+     |  \/  \ \ / /  _ \|  ____|  ____|
+     | \  / |\ V /| |_) | |__  | |__   
+     | |\/| | | | |  _ <|  __| |  __|  
+     | |  | | |.| | |_) | |    | |     
+     |_|  |_| |_| |____/|_|    |_|     
+
+     Hello! I'm MyBff.
+     What can I do for you?
+    ____________________________________________________________
+
     ____________________________________________________________
      Got it. I've added this task:
        [T][ ] read book
@@ -33,12 +40,9 @@ bye
    ____________________________________________________________
 ```
 
-## Empty todos and unknown commands
+## Empty todos and unknown commands: True
 
-**Aim:** Reject incorrect inputs without adding tasks
-
-**Inputs:**
-
+Input:
 ```text
 todo
 todo   
@@ -49,10 +53,20 @@ unmark1
 list
 bye
 ```
-
-**Expected output (after greeting):**
-
+Actual output:
 ```text
+    ____________________________________________________________
+     __  ____   ______  ______ ______ 
+     |  \/  \ \ / /  _ \|  ____|  ____|
+     | \  / |\ V /| |_) | |__  | |__   
+     | |\/| | | | |  _ <|  __| |  __|  
+     | |  | | |.| | |_) | |    | |     
+     |_|  |_| |_| |____/|_|    |_|     
+
+     Hello! I'm MyBff.
+     What can I do for you?
+    ____________________________________________________________
+
     ____________________________________________________________
      OOPS!!! The description of a todo cannot be empty.
     ____________________________________________________________
@@ -86,12 +100,9 @@ bye
    ____________________________________________________________
 ```
 
-## Valid tasks and task numbers
+## Valid tasks and task numbers: True
 
-**Aim:** Continue after invalid numbers and preserve task behavior
-
-**Inputs:**
-
+Input:
 ```text
 deadline homework /by Friday
 event lunch /from noon /to evening
@@ -106,10 +117,20 @@ unmark 1
 list
 bye
 ```
-
-**Expected output (after greeting):**
-
+Actual output:
 ```text
+    ____________________________________________________________
+     __  ____   ______  ______ ______ 
+     |  \/  \ \ / /  _ \|  ____|  ____|
+     | \  / |\ V /| |_) | |__  | |__   
+     | |\/| | | | |  _ <|  __| |  __|  
+     | |  | | |.| | |_) | |    | |     
+     |_|  |_| |_| |____/|_|    |_|     
+
+     Hello! I'm MyBff.
+     What can I do for you?
+    ____________________________________________________________
+
     ____________________________________________________________
      Got it. I've added this task:
        [D][ ] homework (by: Friday)
@@ -167,12 +188,9 @@ bye
    ____________________________________________________________
 ```
 
-## Errors between additions and completion changes
+## Errors between additions and completion changes: True
 
-**Aim:** Check counts, ordering and completion flags immediately after rejected inputs
-
-**Inputs:**
-
+Input:
 ```text
 list
 todo
@@ -190,10 +208,20 @@ unmark 1
 list
 bye
 ```
-
-**Expected output (after greeting):**
-
+Actual output:
 ```text
+    ____________________________________________________________
+     __  ____   ______  ______ ______ 
+     |  \/  \ \ / /  _ \|  ____|  ____|
+     | \  / |\ V /| |_) | |__  | |__   
+     | |\/| | | | |  _ <|  __| |  __|  
+     | |  | | |.| | |_) | |    | |     
+     |_|  |_| |_| |____/|_|    |_|     
+
+     Hello! I'm MyBff.
+     What can I do for you?
+    ____________________________________________________________
+
     ____________________________________________________________
      Here are the tasks in your list:
     ____________________________________________________________
@@ -267,12 +295,9 @@ bye
    ____________________________________________________________
 ```
 
-## Whitespace and command boundaries
+## Whitespace and command boundaries: True
 
-**Aim:** Reject blank and misspelled commands while preserving descriptions and accepting whitespace around valid todos
-
-**Inputs:**
-
+Input:
 ```text
  	 
   todo	read book  
@@ -290,10 +315,20 @@ todo read book
 list
 bye
 ```
-
-**Expected output (after greeting):**
-
+Actual output:
 ```text
+    ____________________________________________________________
+     __  ____   ______  ______ ______ 
+     |  \/  \ \ / /  _ \|  ____|  ____|
+     | \  / |\ V /| |_) | |__  | |__   
+     | |\/| | | | |  _ <|  __| |  __|  
+     | |  | | |.| | |_) | |    | |     
+     |_|  |_| |_| |____/|_|    |_|     
+
+     Hello! I'm MyBff.
+     What can I do for you?
+    ____________________________________________________________
+
     ____________________________________________________________
      OOPS!!! I'm sorry, but I don't know what that means :-(
     ____________________________________________________________
@@ -369,12 +404,9 @@ bye
    ____________________________________________________________
 ```
 
-## Invalid indexes between valid status updates
+## Invalid indexes between valid status updates: True
 
-**Aim:** Verify missing, noninteger, out-of-range and overflowing indexes cannot change existing task flags
-
-**Inputs:**
-
+Input:
 ```text
 mark 1
 todo first
@@ -397,10 +429,20 @@ unmark 2
 list
 bye
 ```
-
-**Expected output (after greeting):**
-
+Actual output:
 ```text
+    ____________________________________________________________
+     __  ____   ______  ______ ______ 
+     |  \/  \ \ / /  _ \|  ____|  ____|
+     | \  / |\ V /| |_) | |__  | |__   
+     | |\/| | | | |  _ <|  __| |  __|  
+     | |  | | |.| | |_) | |    | |     
+     |_|  |_| |_| |____/|_|    |_|     
+
+     Hello! I'm MyBff.
+     What can I do for you?
+    ____________________________________________________________
+
     ____________________________________________________________
      Invalid task number.
     ____________________________________________________________
