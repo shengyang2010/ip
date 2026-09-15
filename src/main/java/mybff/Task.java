@@ -36,6 +36,16 @@ public class Task {
         return "T";
     }
 
+    /** Returns the task fields for storage on disk. */
+    public String toStorageString() {
+        return getTypeIcon() + " | " + (isDone ? "1" : "0") + " | " + encodeField(description);
+    }
+
+    /** Encodes a text field so pipes, backslashes and line breaks cannot corrupt storage. */
+    protected static String encodeField(String value) {
+        return java.util.Base64.getEncoder().encodeToString(value.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+    }
+
     /** Returns the display representation. */
     @Override
     public String toString() {

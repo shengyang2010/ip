@@ -1,5 +1,13 @@
 package mybff;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.Base64;
+import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
 /**
@@ -16,6 +24,8 @@ public class MyBff {
     private static final String SEPARATOR =
             "____________________________________________________________";
     private static final int MAX_TASKS = 100;
+    private static final String STORAGE_HEADER = "MyBff storage v2";
+    private static final Path TASK_FILE = Path.of("data", "duke.txt");
     private static final String BANNER =
             "     __  ____   ______  ______ ______ \n"
                     + "     |  \\/  \\ \\ / /  _ \\|  ____|  ____|\n"
@@ -33,7 +43,15 @@ public class MyBff {
         printGreeting();
         Scanner scanner = new Scanner(System.in);
         Task[] tasks = new Task[MAX_TASKS];
-        int taskCount = 0;
+        int taskCount;
+        try {
+            taskCount = loadTasks(tasks);
+        } catch (IOException | SecurityException exception) {
+            System.out.println("     OOPS!!! Could not load data/duke.txt. "
+                    + "Your saved file has not been changed. Check the file and restart.");
+            scanner.close();
+            return;
+        }
         while (scanner.hasNextLine()) {
             String command = scanner.nextLine().trim();
             String commandWord = command.split("\\s+", 2)[0];
@@ -45,18 +63,23 @@ public class MyBff {
                 break;
             }
 
-            if (command.equals(COMMAND_LIST)) {
-                printTaskList(tasks, taskCount);
-            } else if (commandWord.equals(COMMAND_MARK)) {
-                processCompletionCommand(command, COMMAND_MARK, tasks, taskCount, true);
-            } else if (commandWord.equals(COMMAND_UNMARK)) {
-                processCompletionCommand(command, COMMAND_UNMARK, tasks, taskCount, false);
-            } else {
-                try {
-                    taskCount = addTask(tasks, taskCount, command);
-                } catch (MyBffException exception) {
-                    System.out.println("     OOPS!!! " + exception.getMessage());
+            try {
+                if (command.equals(COMMAND_LIST)) {
+                    printTaskList(tasks, taskCount);
+                } else if (commandWord.equals(COMMAND_MARK)) {
+                    processCompletionCommand(command, COMMAND_MARK, tasks, taskCount, true);
+                } else if (commandWord.equals(COMMAND_UNMARK)) {
+                    processCompletionCommand(command, COMMAND_UNMARK, tasks, taskCount, false);
+                } else {
+                    try {
+                        taskCount = addTask(tasks, taskCount, command);
+                    } catch (MyBffException exception) {
+                        System.out.println("     OOPS!!! " + exception.getMessage());
+                    }
                 }
+            } catch (IOException | SecurityException exception) {
+                System.out.println("     OOPS!!! Could not save data/duke.txt. "
+                        + "No changes were made. Check file access and try again.");
             }
             System.out.println("    " + SEPARATOR);
             System.out.println();
@@ -88,7 +111,8 @@ public class MyBff {
      * @return the updated number of tasks
      * @throws MyBffException if the command is unknown or the todo description is empty
      */
-    private static int addTask(Task[] tasks, int taskCount, String command) throws MyBffException {
+    private static int addTask(Task[] tasks, int taskCount, String command)
+            throws MyBffException, IOException {
         Task task = createTask(command);
         if (taskCount >= MAX_TASKS) {
             System.out.println(" Your task list is full.");
@@ -96,6 +120,12 @@ public class MyBff {
         }
 
         tasks[taskCount] = task;
+        try {
+            saveTasks(tasks, taskCount + 1);
+        } catch (IOException | SecurityException exception) {
+            tasks[taskCount] = null;
+            throw exception;
+        }
         System.out.println("     Got it. I've added this task:");
         System.out.println("       " + tasks[taskCount]);
         System.out.println("     Now you have " + (taskCount + 1) + " tasks in the list.");
@@ -132,20 +162,30 @@ public class MyBff {
 
     /** Processes a command that changes a task's completion status. */
     private static void processCompletionCommand(String command, String commandPrefix,
-            Task[] tasks, int taskCount, boolean isMarkingAsDone) {
+            Task[] tasks, int taskCount, boolean isMarkingAsDone) throws IOException {
         String taskNumber = command.substring(commandPrefix.length()).trim();
         try {
             int index = Integer.parseInt(taskNumber) - 1;
             if (index >= 0 && index < taskCount) {
+                boolean wasDone = tasks[index].getStatusIcon().equals("X");
                 if (isMarkingAsDone) {
                     tasks[index].markAsDone();
-                    System.out.println("     Nice! I've marked this task as done:");
-                    System.out.println("       [X] " + tasks[index].getDescription());
                 } else {
                     tasks[index].markAsNotDone();
-                    System.out.println("     OK, I've marked this task as not done yet:");
-                    System.out.println("       [ ] " + tasks[index].getDescription());
                 }
+                try {
+                    saveTasks(tasks, taskCount);
+                } catch (IOException | SecurityException exception) {
+                    if (wasDone) {
+                        tasks[index].markAsDone();
+                    } else {
+                        tasks[index].markAsNotDone();
+                    }
+                    throw exception;
+                }
+                System.out.println(isMarkingAsDone ? "     Nice! I've marked this task as done:"
+                        : "     OK, I've marked this task as not done yet:");
+                System.out.println("       [" + tasks[index].getStatusIcon() + "] " + tasks[index].getDescription());
             } else {
                 System.out.println("     Invalid task number.");
             }
@@ -153,12 +193,87 @@ public class MyBff {
             System.out.println("     Invalid task number.");
         }
     }
+
+    /** Loads saved tasks in order, or returns an empty list on the first run. */
+    private static int loadTasks(Task[] tasks) throws IOException {
+        if (Files.notExists(TASK_FILE)) {
+            return 0;
+        }
+        int taskCount = 0;
+        try (BufferedReader reader = Files.newBufferedReader(TASK_FILE)) {
+            String line = reader.readLine();
+            if (line != null && line.startsWith("\uFEFF")) {
+                line = line.substring(1);
+            }
+            boolean isEncoded = STORAGE_HEADER.equals(line);
+            if (isEncoded) {
+                line = reader.readLine();
+            }
+            while (line != null) {
+                if (!line.isBlank()) {
+                    if (taskCount == tasks.length) {
+                        throw new IOException("The task file exceeds the task list capacity.");
+                    }
+                    tasks[taskCount] = parseSavedTask(line, isEncoded);
+                    taskCount++;
+                }
+                line = reader.readLine();
+            }
+        }
+        return taskCount;
+    }
+
+    /** Restores a task from the pipe-separated format used by the writer. */
+    private static Task parseSavedTask(String line, boolean isEncoded) throws IOException {
+        String[] fields = line.split(" \\| ", -1);
+        if (fields.length < 3 || !(fields[1].equals("0") || fields[1].equals("1"))) {
+            throw new IOException("Invalid saved task: " + line);
+        }
+        if (isEncoded) {
+            try {
+                for (int i = 2; i < fields.length; i++) {
+                    fields[i] = StandardCharsets.UTF_8.newDecoder().decode(
+                            java.nio.ByteBuffer.wrap(Base64.getDecoder().decode(fields[i]))).toString();
+                }
+            } catch (IllegalArgumentException exception) {
+                throw new IOException("Invalid encoded task field.", exception);
+            }
+        }
+        if (fields[2].isBlank()) {
+            throw new IOException("Saved task description is empty.");
+        }
+        Task task;
+        if (fields[0].equals("T") && fields.length == 3) {
+            task = new ToDo(fields[2]);
+        } else if (fields[0].equals("D") && fields.length == 4) {
+            task = new Deadline(fields[2], fields[3]);
+        } else if (fields[0].equals("E") && fields.length == 5) {
+            task = new Event(fields[2], fields[3], fields[4]);
+        } else {
+            throw new IOException("Invalid saved task: " + line);
+        }
+        if (fields[1].equals("1")) {
+            task.markAsDone();
+        }
+        return task;
+    }
+
+    /** Replaces the saved list after a successful task update, creating the data directory if needed. */
+    private static void saveTasks(Task[] tasks, int taskCount) throws IOException {
+        Files.createDirectories(TASK_FILE.getParent());
+        Path temporary = Files.createTempFile(TASK_FILE.getParent(), "duke-", ".tmp");
+        try {
+            try (BufferedWriter writer = Files.newBufferedWriter(temporary)) {
+                writer.write(STORAGE_HEADER);
+                writer.newLine();
+                for (int i = 0; i < taskCount; i++) {
+                    writer.write(tasks[i].toStorageString());
+                    writer.newLine();
+                }
+            }
+            Files.move(temporary, TASK_FILE, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        } finally {
+            Files.deleteIfExists(temporary);
+        }
+    }
 }
-
-
-
-
-
-
-
-

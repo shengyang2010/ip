@@ -15,13 +15,22 @@ foreach ($case in $cases) {
     $case.Inputs += 'bye'
     $plan += "`n## $($case.Name)`n`n**Aim:** $($case.Aim)`n`n**Inputs:**`n`n``````text`n$($case.Inputs -join "`n")`n```````n`n**Expected output (after greeting):**`n`n``````text`n$($case.Expected)```````n"
 }
+$plan += Get-Content -Raw "$PSScriptRoot/storage-test-plan.md"
 Set-Content -LiteralPath test/ui-test-plan.md -Value $plan
 New-Item -ItemType Directory -Force -Path build/ui-test | Out-Null
 javac -d build/ui-test (Get-ChildItem src/main/java/mybff/*.java).FullName
 if ($LASTEXITCODE -ne 0) { throw 'Compilation failed' }
 $record = "# UI Test Sessions`n`nJava 25.0.4`n"
 foreach ($case in $cases) {
-    $outputLines = $case.Inputs | java -cp build/ui-test mybff.MyBff
+    $classes = (Resolve-Path build/ui-test).Path
+    $sessionDirectory = Join-Path (Resolve-Path build/ui-test).Path ([guid]::NewGuid().ToString())
+    New-Item -ItemType Directory -Path $sessionDirectory | Out-Null
+    Push-Location $sessionDirectory
+    try {
+        $outputLines = $case.Inputs | java -cp $classes mybff.MyBff
+    } finally {
+        Pop-Location
+    }
     $output = ($outputLines -join "`n") + "`n"
     $marker = "     What can I do for you?`n$separator`n`n"
     $offset = $output.IndexOf($marker)
