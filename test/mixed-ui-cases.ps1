@@ -69,6 +69,47 @@ $mixedCases = @(
         )
     }
 )
+$mixedCases += @{
+    Name = 'Delete tasks and reuse list positions'
+    Aim = 'Delete middle, first and last tasks, preserve status and order, and add after deletion'
+    Steps = @(
+        @{ Input='todo first'; Output=@("     Got it. I've added this task:", '       [T][ ] first', '     Now you have 1 tasks in the list.') }
+        @{ Input='event project meeting /from Aug 6th 2pm /to 4pm'; Output=@("     Got it. I've added this task:", '       [E][ ] project meeting (from: Aug 6th 2pm to: 4pm)', '     Now you have 2 tasks in the list.') }
+        @{ Input='deadline last /by Friday'; Output=@("     Got it. I've added this task:", '       [D][ ] last (by: Friday)', '     Now you have 3 tasks in the list.') }
+        @{ Input='mark 3'; Output=@("     Nice! I've marked this task as done:", '       [X] last') }
+        @{ Input='delete 2'; Output=@("     Noted. I've removed this task:", '       [E][ ] project meeting (from: Aug 6th 2pm to: 4pm)', '     Now you have 2 tasks in the list.') }
+        @{ Input='list'; Output=@($listHeader, '     1.[T][ ] first', '     2.[D][X] last (by: Friday)') }
+        @{ Input='delete 1'; Output=@("     Noted. I've removed this task:", '       [T][ ] first', '     Now you have 1 tasks in the list.') }
+        @{ Input="  delete`t1  "; Output=@("     Noted. I've removed this task:", '       [D][X] last (by: Friday)', '     Now you have 0 tasks in the list.') }
+        @{ Input='list'; Output=@($listHeader) }
+        @{ Input='delete 1'; Output=@($invalidNumber) }
+        @{ Input='todo new'; Output=@("     Got it. I've added this task:", '       [T][ ] new', '     Now you have 1 tasks in the list.') }
+        @{ Input='delete'; Output=@($invalidNumber) }
+        @{ Input='delete abc'; Output=@($invalidNumber) }
+        @{ Input='delete 0'; Output=@($invalidNumber) }
+        @{ Input='delete -1'; Output=@($invalidNumber) }
+        @{ Input='delete 2'; Output=@($invalidNumber) }
+        @{ Input='delete 2147483648'; Output=@($invalidNumber) }
+        @{ Input='delete -2147483648'; Output=@($invalidNumber) }
+        @{ Input='delete 1 2'; Output=@($invalidNumber) }
+        @{ Input='delete1'; Output=@($unknown) }
+        @{ Input='list'; Output=@($listHeader, '     1.[T][ ] new') }
+    )
+}
+$growthSteps = @(1..101 | ForEach-Object {
+    @{ Input="todo task $_"; Output=@("     Got it. I've added this task:", "       [T][ ] task $_", "     Now you have $_ tasks in the list.") }
+})
+$growthSteps += @(
+    @{ Input='delete 100'; Output=@("     Noted. I've removed this task:", '       [T][ ] task 100', '     Now you have 100 tasks in the list.') }
+    @{ Input='mark 100'; Output=@("     Nice! I've marked this task as done:", '       [X] task 101') }
+    @{ Input='todo replacement'; Output=@("     Got it. I've added this task:", '       [T][ ] replacement', '     Now you have 101 tasks in the list.') }
+    @{ Input='list'; Output=@($listHeader) + @(1..99 | ForEach-Object { "     $_.[T][ ] task $_" }) + @('     100.[T][X] task 101', '     101.[T][ ] replacement') }
+)
+$mixedCases += @{
+    Name = 'Collection grows beyond 100 tasks'
+    Aim = 'Store more than 100 tasks and preserve indexes and order after deletion and addition'
+    Steps = $growthSteps
+}
 foreach ($case in $mixedCases) {
     $cases += @{
         Name = $case.Name

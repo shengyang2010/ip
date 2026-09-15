@@ -1,164 +1,100 @@
 package mybff;
 
-import java.util.Scanner;
-
-/**
- * Runs the MyBFF chatbot.
- */
+/** Coordinates console interaction, command parsing, and the task list. */
 public class MyBff {
-    private static final String COMMAND_BYE = "bye";
-    private static final String COMMAND_LIST = "list";
-    private static final String COMMAND_MARK = "mark";
-    private static final String COMMAND_UNMARK = "unmark";
-    private static final String COMMAND_TODO = "todo";
-    private static final String COMMAND_DEADLINE = "deadline";
-    private static final String COMMAND_EVENT = "event";
-    private static final String SEPARATOR =
-            "____________________________________________________________";
-    private static final int MAX_TASKS = 100;
-    private static final String BANNER =
-            "     __  ____   ______  ______ ______ \n"
-                    + "     |  \\/  \\ \\ / /  _ \\|  ____|  ____|\n"
-                    + "     | \\  / |\\ V /| |_) | |__  | |__   \n"
-                    + "     | |\\/| | | | |  _ <|  __| |  __|  \n"
-                    + "     | |  | | |.| | |_) | |    | |     \n"
-                    + "     |_|  |_| |_| |____/|_|    |_|     \n";
+    private final Ui ui = new Ui();
+    private final Parser parser = new Parser();
+    private final TaskList tasks = new TaskList();
 
     /**
-     * Greets the user, stores tasks in memory, and handles the supported commands.
+     * Starts the chatbot.
      *
      * @param args command-line arguments, which are not used
      */
     public static void main(String[] args) {
-        printGreeting();
-        Scanner scanner = new Scanner(System.in);
-        Task[] tasks = new Task[MAX_TASKS];
-        int taskCount = 0;
-        while (scanner.hasNextLine()) {
-            String command = scanner.nextLine().trim();
-            String commandWord = command.split("\\s+", 2)[0];
-            System.out.println("    " + SEPARATOR);
+        new MyBff().run();
+    }
 
-            if (command.equals(COMMAND_BYE)) {
-                System.out.println(" Bye. Hope to see you again soon!");
-                System.out.println("   " + SEPARATOR);
-                break;
-            }
-
-            if (command.equals(COMMAND_LIST)) {
-                printTaskList(tasks, taskCount);
-            } else if (commandWord.equals(COMMAND_MARK)) {
-                processCompletionCommand(command, COMMAND_MARK, tasks, taskCount, true);
-            } else if (commandWord.equals(COMMAND_UNMARK)) {
-                processCompletionCommand(command, COMMAND_UNMARK, tasks, taskCount, false);
-            } else {
-                try {
-                    taskCount = addTask(tasks, taskCount, command);
-                } catch (MyBffException exception) {
-                    System.out.println("     OOPS!!! " + exception.getMessage());
+    /** Greets the user and handles commands until bye or the end of input. */
+    public void run() {
+        ui.printGreeting();
+        try {
+            while (ui.hasNextCommand()) {
+                String command = ui.readCommand();
+                ui.printSeparator();
+                if (command.equals(Parser.COMMAND_BYE)) {
+                    ui.printFarewell();
+                    break;
                 }
+                processCommand(command);
+                ui.printResponseEnd();
             }
-            System.out.println("    " + SEPARATOR);
-            System.out.println();
-        }
-        scanner.close();
-    }
-
-    /** Prints the chatbot banner and greeting. */
-    private static void printGreeting() {
-        System.out.println("    " + SEPARATOR);
-        System.out.println(BANNER);
-        System.out.println("     Hello! I'm MyBff.");
-        System.out.println("     What can I do for you?");
-        System.out.println("    " + SEPARATOR);
-        System.out.println();
-    }
-
-    /** Prints all stored tasks with their indexes and completion statuses. */
-    private static void printTaskList(Task[] tasks, int taskCount) {
-        System.out.println("     Here are the tasks in your list:");
-        for (int i = 0; i < taskCount; i++) {
-            System.out.println("     " + (i + 1) + "." + tasks[i]);
+        } finally {
+            ui.close();
         }
     }
 
-    /**
-     * Adds a task when the task list has capacity.
-     *
-     * @return the updated number of tasks
-     * @throws MyBffException if the command is unknown or the todo description is empty
-     */
-    private static int addTask(Task[] tasks, int taskCount, String command) throws MyBffException {
-        Task task = createTask(command);
-        if (taskCount >= MAX_TASKS) {
-            System.out.println(" Your task list is full.");
-            return taskCount;
+    /** Routes each command to the appropriate task operation. */
+    private void processCommand(String command) {
+        String commandWord = parser.getCommandWord(command);
+        if (command.equals(Parser.COMMAND_LIST)) {
+            ui.printTaskList(tasks);
+        } else if (commandWord.equals(Parser.COMMAND_MARK)) {
+            processCompletionCommand(command, commandWord, true);
+        } else if (commandWord.equals(Parser.COMMAND_UNMARK)) {
+            processCompletionCommand(command, commandWord, false);
+        } else if (commandWord.equals(Parser.COMMAND_DELETE)) {
+            processDeleteCommand(command);
+        } else {
+            processAddCommand(command);
         }
-
-        tasks[taskCount] = task;
-        System.out.println("     Got it. I've added this task:");
-        System.out.println("       " + tasks[taskCount]);
-        System.out.println("     Now you have " + (taskCount + 1) + " tasks in the list.");
-        return taskCount + 1;
     }
 
-    /**
-     * Parses a task, rejecting empty todos and unknown commands.
-     *
-     * @throws MyBffException if the command is unknown or the todo description is empty
-     */
-    private static Task createTask(String command) throws MyBffException {
-        if (command.startsWith(COMMAND_DEADLINE + " ")) {
-            String[] deadlineParts = command.substring(COMMAND_DEADLINE.length())
-                    .trim().split(" /by ", 2);
-            return new Deadline(deadlineParts[0], deadlineParts.length == 2 ? deadlineParts[1] : "");
-        }
-        if (command.startsWith(COMMAND_EVENT + " ")) {
-            String[] eventParts = command.substring(COMMAND_EVENT.length())
-                    .trim().split(" /from ", 2);
-            String[] timeParts = (eventParts.length == 2 ? eventParts[1] : "").split(" /to ", 2);
-            return new Event(eventParts[0], timeParts[0], timeParts.length == 2 ? timeParts[1] : "");
-        }
-        String[] commandParts = command.split("\\s+", 2);
-        if (commandParts[0].equals(COMMAND_TODO)) {
-            String description = commandParts.length == 2 ? commandParts[1].trim() : "";
-            if (description.isEmpty()) {
-                throw new MyBffException("The description of a todo cannot be empty.");
-            }
-            return new ToDo(description);
-        }
-        throw new MyBffException("I'm sorry, but I don't know what that means :-(");
-    }
-
-    /** Processes a command that changes a task's completion status. */
-    private static void processCompletionCommand(String command, String commandPrefix,
-            Task[] tasks, int taskCount, boolean isMarkingAsDone) {
-        String taskNumber = command.substring(commandPrefix.length()).trim();
+    /** Validates the task number and removes the selected task. */
+    private void processDeleteCommand(String command) {
+        String taskNumber = command.substring(Parser.COMMAND_DELETE.length()).trim();
         try {
             int index = Integer.parseInt(taskNumber) - 1;
-            if (index >= 0 && index < taskCount) {
-                if (isMarkingAsDone) {
-                    tasks[index].markAsDone();
-                    System.out.println("     Nice! I've marked this task as done:");
-                    System.out.println("       [X] " + tasks[index].getDescription());
-                } else {
-                    tasks[index].markAsNotDone();
-                    System.out.println("     OK, I've marked this task as not done yet:");
-                    System.out.println("       [ ] " + tasks[index].getDescription());
-                }
-            } else {
-                System.out.println("     Invalid task number.");
+            if (!tasks.isValidIndex(index)) {
+                ui.printInvalidTaskNumber();
+                return;
             }
+            Task removedTask = tasks.delete(index);
+            ui.printTaskDeleted(removedTask, tasks.size());
         } catch (NumberFormatException exception) {
-            System.out.println("     Invalid task number.");
+            ui.printInvalidTaskNumber();
+        }
+    }
+
+    /** Parses and adds a task, reporting rejected commands. */
+    private void processAddCommand(String command) {
+        try {
+            Task task = parser.createTask(command);
+            tasks.add(task);
+            ui.printTaskAdded(task, tasks.size());
+        } catch (MyBffException exception) {
+            ui.printError(exception);
+        }
+    }
+
+    /** Validates the task number and updates the selected task's status. */
+    private void processCompletionCommand(String command, String commandWord, boolean isMarkingAsDone) {
+        String taskNumber = command.substring(commandWord.length()).trim();
+        try {
+            int index = Integer.parseInt(taskNumber) - 1;
+            if (!tasks.isValidIndex(index)) {
+                ui.printInvalidTaskNumber();
+                return;
+            }
+            Task task = tasks.get(index);
+            if (isMarkingAsDone) {
+                task.markAsDone();
+            } else {
+                task.markAsNotDone();
+            }
+            ui.printCompletionChanged(task, isMarkingAsDone);
+        } catch (NumberFormatException exception) {
+            ui.printInvalidTaskNumber();
         }
     }
 }
-
-
-
-
-
-
-
-
