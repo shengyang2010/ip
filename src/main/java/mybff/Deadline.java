@@ -16,6 +16,11 @@ public class Deadline extends Task {
     }
 
     @Override
+    public String toStorageString() {
+        return super.toStorageString() + " | " + encodeField(by);
+    }
+
+    @Override
     public String toString() {
         return super.toString() + " (by: " + by + ")";
     }
