@@ -7,12 +7,14 @@ import tempfile
 root = Path(__file__).resolve().parents[1]
 classes = root / 'build/ui-test'
 session = Path(tempfile.mkdtemp(prefix='storage-', dir=classes))
-saved = session / 'data/duke.txt'
+saved = session / 'data/mybff.txt'
 def read_saved():
     lines = saved.read_text(encoding='utf-8').splitlines()
     if lines and lines[0] == 'MyBff storage v2':
         return [' | '.join(parts[:2] + [base64.b64decode(f).decode('utf-8') for f in parts[2:]])
                 for parts in (line.split(' | ') for line in lines[1:])]
+    if lines and lines[0] == 'MyBff storage v3':
+        return lines[1:]
     return lines
 
 
@@ -94,6 +96,12 @@ try:
     restart('list\nbye\n', response('     Here are the tasks in your list:',
             '     1.[T][X] done', '     2.[D][ ] homework (by: )',
             '     3.[E][X] lunch (from:  to: )') + farewell)
+    saved.write_text('MyBff storage v2\nT | 1 | cmVhZCBib29r\n', encoding='utf-8')
+    restart('list\ntodo next\nbye\n', response('     Here are the tasks in your list:',
+            '     1.[T][X] read book') + response("     Got it. I've added this task:",
+            '       [T][ ] next', '     Now you have 2 tasks in the list.') + farewell)
+    assert saved.read_text(encoding='utf-8').splitlines() == [
+        'MyBff storage v3', 'T | 1 | read book', 'T | 0 | next']
     saved.write_text('', encoding='utf-8')
     restart('list\nbye\n', response('     Here are the tasks in your list:') + farewell)
     assert saved.read_text(encoding='utf-8') == ''

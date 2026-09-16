@@ -24,8 +24,8 @@ public class MyBff {
     private static final String SEPARATOR =
             "____________________________________________________________";
     private static final int MAX_TASKS = 100;
-    private static final String STORAGE_HEADER = "MyBff storage v2";
-    private static final Path TASK_FILE = Path.of("data", "duke.txt");
+    private static final String STORAGE_HEADER = "MyBff storage v3";
+    private static final Path TASK_FILE = Path.of("data", "mybff.txt");
     private static final String BANNER =
             "     __  ____   ______  ______ ______ \n"
                     + "     |  \\/  \\ \\ / /  _ \\|  ____|  ____|\n"
@@ -47,7 +47,7 @@ public class MyBff {
         try {
             taskCount = loadTasks(tasks);
         } catch (IOException | SecurityException exception) {
-            System.out.println("     OOPS!!! Could not load data/duke.txt. "
+            System.out.println("     OOPS!!! Could not load data/mybff.txt. "
                     + "Your saved file has not been changed. Check the file and restart.");
             scanner.close();
             return;
@@ -78,7 +78,7 @@ public class MyBff {
                     }
                 }
             } catch (IOException | SecurityException exception) {
-                System.out.println("     OOPS!!! Could not save data/duke.txt. "
+                System.out.println("     OOPS!!! Could not save data/mybff.txt. "
                         + "No changes were made. Check file access and try again.");
             }
             System.out.println("    " + SEPARATOR);
@@ -205,8 +205,9 @@ public class MyBff {
             if (line != null && line.startsWith("\uFEFF")) {
                 line = line.substring(1);
             }
-            boolean isEncoded = STORAGE_HEADER.equals(line);
-            if (isEncoded) {
+            boolean isEncoded = "MyBff storage v2".equals(line);
+            boolean isEscaped = STORAGE_HEADER.equals(line);
+            if (isEncoded || isEscaped) {
                 line = reader.readLine();
             }
             while (line != null) {
@@ -214,7 +215,7 @@ public class MyBff {
                     if (taskCount == tasks.length) {
                         throw new IOException("The task file exceeds the task list capacity.");
                     }
-                    tasks[taskCount] = parseSavedTask(line, isEncoded);
+                    tasks[taskCount] = parseSavedTask(line, isEncoded, isEscaped);
                     taskCount++;
                 }
                 line = reader.readLine();
@@ -224,7 +225,7 @@ public class MyBff {
     }
 
     /** Restores a task from the pipe-separated format used by the writer. */
-    private static Task parseSavedTask(String line, boolean isEncoded) throws IOException {
+    private static Task parseSavedTask(String line, boolean isEncoded, boolean isEscaped) throws IOException {
         String[] fields = line.split(" \\| ", -1);
         if (fields.length < 3 || !(fields[1].equals("0") || fields[1].equals("1"))) {
             throw new IOException("Invalid saved task: " + line);
@@ -237,6 +238,11 @@ public class MyBff {
                 }
             } catch (IllegalArgumentException exception) {
                 throw new IOException("Invalid encoded task field.", exception);
+            }
+        }
+        if (isEscaped) {
+            for (int i = 2; i < fields.length; i++) {
+                fields[i] = decodeField(fields[i]);
             }
         }
         if (fields[2].isBlank()) {
@@ -258,10 +264,42 @@ public class MyBff {
         return task;
     }
 
+    /** Restores escaped characters in the human-readable storage format. */
+    private static String decodeField(String value) throws IOException {
+        StringBuilder decoded = new StringBuilder();
+        for (int i = 0; i < value.length(); i++) {
+            char character = value.charAt(i);
+            if (character != '\\') {
+                decoded.append(character);
+                continue;
+            }
+            if (++i == value.length()) {
+                throw new IOException("Incomplete escape in saved task.");
+            }
+            switch (value.charAt(i)) {
+            case '\\':
+                decoded.append('\\');
+                break;
+            case 'p':
+                decoded.append('|');
+                break;
+            case 'n':
+                decoded.append('\n');
+                break;
+            case 'r':
+                decoded.append('\r');
+                break;
+            default:
+                throw new IOException("Invalid escape in saved task.");
+            }
+        }
+        return decoded.toString();
+    }
+
     /** Replaces the saved list after a successful task update, creating the data directory if needed. */
     private static void saveTasks(Task[] tasks, int taskCount) throws IOException {
         Files.createDirectories(TASK_FILE.getParent());
-        Path temporary = Files.createTempFile(TASK_FILE.getParent(), "duke-", ".tmp");
+        Path temporary = Files.createTempFile(TASK_FILE.getParent(), "mybff-", ".tmp");
         try {
             try (BufferedWriter writer = Files.newBufferedWriter(temporary)) {
                 writer.write(STORAGE_HEADER);

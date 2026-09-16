@@ -511,7 +511,7 @@ directory under `build/ui-test` to protect real task data.
 the existing unknown-command error, and the farewell. Full console input/output is recorded in
 `test/storage-test-sessions.md`. Existing UI cases verify the exact response text.
 
-**Expected file:** After each addition, `data/duke.txt` contains all tasks added so far, one per line:
+**Expected file:** After each addition, `data/mybff.txt` contains all tasks added so far, one per line:
 
 ```text
 T | 0 | read book
@@ -521,8 +521,8 @@ E | 0 | lunch | noon | evening
 
 Mark changes the first line to `T | 1 | read book`; unmark restores `T | 0 | read book`.
 List, unknown commands, and bye leave the file unchanged. Startup alone creates no file.
-New saves use a `MyBff storage v2` header and Base64-encoded text fields. The snapshots above
-show decoded fields. Existing pipe-separated files remain readable.
+New saves use a `MyBff storage v3` header and readable text fields with backslash escapes. The snapshots above
+show decoded fields. Existing pipe-separated and Base64 v2 files remain readable.
 
 ## Storage errors and special text
 
@@ -531,10 +531,10 @@ show decoded fields. Existing pipe-separated files remain readable.
 **Inputs:** For each malformed file (invalid type/status/field count, empty description, bad UTF-8,
 bad Base64, or more than 100 tasks), send `todo replacement`, `bye`.
 
-**Expected output:** `OOPS!!! Could not load data/duke.txt. Your saved file has not been changed.
+**Expected output:** `OOPS!!! Could not load data/mybff.txt. Your saved file has not been changed.
 Check the file and restart.` The application stops without changing the file.
 A directory at the file path also gives this error. A blocked data directory either gives the load
-error or rejects an addition with `OOPS!!! Could not save data/duke.txt. No changes were made.
+error or rejects an addition with `OOPS!!! Could not save data/mybff.txt. No changes were made.
 Check file access and try again.`
 
 **Additional inputs:** Load a BOM-prefixed file with blank lines and a completed task; send `list`,
@@ -570,3 +570,15 @@ and `E | 1 | lunch |  | ` saved as separate lines, run `list`, `bye`.
 Expect a completed todo, an incomplete deadline with an empty by field, and a completed event
 with empty from/to fields. With an empty file, `list`, `bye` shows an empty list and leaves the file empty.
 The original saving test also checks startup with no file.
+
+## Readable storage migration
+
+**Aim:** Read existing Base64 tasks and save readable text.
+
+**Inputs:** With `MyBff storage v2` and `T | 1 | cmVhZCBib29r` as the saved file,
+send `list`, `todo next`, `bye`.
+
+**Expected output:** List shows `[T][X] read book`; addition confirms next and a count of two.
+The file becomes `MyBff storage v3`, `T | 1 | read book`, `T | 0 | next` on separate lines.
+Existing special-character restart tests verify pipes and backslashes survive the new format.
+

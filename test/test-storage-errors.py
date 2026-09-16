@@ -6,9 +6,9 @@ import tempfile
 root = Path(__file__).resolve().parents[1]
 classes = root / 'build/ui-test'
 record = ['# Storage error sessions\n']
-load_error = ('     OOPS!!! Could not load data/duke.txt. Your saved file has not been changed. '
+load_error = ('     OOPS!!! Could not load data/mybff.txt. Your saved file has not been changed. '
               'Check the file and restart.\n')
-save_error = ('     OOPS!!! Could not save data/duke.txt. No changes were made. '
+save_error = ('     OOPS!!! Could not save data/mybff.txt. No changes were made. '
               'Check file access and try again.')
 
 
@@ -27,14 +27,14 @@ try:
                     b'T | 0 | task\n' * 101]:
         folder = Path(tempfile.mkdtemp(dir=classes))
         (folder / 'data').mkdir()
-        target = folder / 'data/duke.txt'
+        target = folder / 'data/mybff.txt'
         target.write_bytes(payload)
         output = run(folder, 'todo replacement\nbye\n')
         assert output.endswith(load_error), output
         assert target.read_bytes() == payload
     folder = Path(tempfile.mkdtemp(dir=classes))
     (folder / 'data').mkdir()
-    (folder / 'data/duke.txt').mkdir()
+    (folder / 'data/mybff.txt').mkdir()
     assert run(folder, 'bye\n').endswith(load_error)
     folder = Path(tempfile.mkdtemp(dir=classes))
     (folder / 'data').write_text('obstruction')
@@ -44,14 +44,14 @@ try:
     assert (folder / 'data').read_text() == 'obstruction'
     folder = Path(tempfile.mkdtemp(dir=classes))
     (folder / 'data').mkdir()
-    (folder / 'data/duke.txt').write_text('\ufeff\nT | 1 | original\n\n', encoding='utf-8')
+    (folder / 'data/mybff.txt').write_text('\ufeff\nT | 1 | original\n\n', encoding='utf-8')
     output = run(folder, 'list\ntodo pipes | and \\ paths\nbye\n')
     assert '1.[T][X] original' in output
     output = run(folder, 'list\nbye\n')
     assert '2.[T][ ] pipes | and \\ paths' in output
     folder = Path(tempfile.mkdtemp(dir=classes))
     (folder / 'data').mkdir()
-    target = folder / 'data/duke.txt'
+    target = folder / 'data/mybff.txt'
     target.write_text('T | 0 | task\n' * 100)
     before = target.read_bytes()
     output = run(folder, 'todo overflow\nbye\n')
@@ -59,7 +59,7 @@ try:
     # Block replacement after startup to exercise rollback of in-memory changes.
     folder = Path(tempfile.mkdtemp(dir=classes))
     (folder / 'data').mkdir()
-    target = folder / 'data/duke.txt'
+    target = folder / 'data/mybff.txt'
     target.write_text('T | 0 | first\nT | 1 | second\n')
     process = subprocess.Popen(['java', '-cp', str(classes), 'mybff.MyBff'], cwd=folder,
                                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
@@ -81,7 +81,7 @@ try:
         assert process.returncode == 0 and output.count(save_error) == 3, output
         assert '1.[T][ ] first' in output and '2.[T][X] second' in output
         assert "I've added" not in output and "I've marked" not in output
-        assert not list((folder / 'data').glob('duke-*.tmp'))
+        assert not list((folder / 'data').glob('mybff-*.tmp'))
         assert (folder / 'data/original.txt').read_text() == 'T | 0 | first\nT | 1 | second\n'
     finally:
         if process.poll() is None:

@@ -43,7 +43,7 @@ public class Task {
 
     /** Encodes a text field so pipes, backslashes and line breaks cannot corrupt storage. */
     protected static String encodeField(String value) {
-        return java.util.Base64.getEncoder().encodeToString(value.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        return value.replace("\\", "\\\\").replace("|", "\\p").replace("\n", "\\n").replace("\r", "\\r");
     }
 
     /** Returns the display representation. */
