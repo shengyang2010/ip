@@ -85,19 +85,12 @@ public class MyBff {
         }
     }
 
-    /** Parses and adds a task, reporting rejected commands and save failures. */
+    /** Parses an addition, delegates execution, and reports rejected commands. */
     private void processAddCommand(String command) {
         try {
             Task task = parser.createTask(command);
-            tasks.add(task);
-            try {
-                storage.save(tasks);
-            } catch (IOException | SecurityException exception) {
-                tasks.delete(tasks.size() - 1);
-                ui.printSaveError();
-                return;
-            }
-            ui.printTaskAdded(task, tasks.size());
+            Command addCommand = new AddCommand(task);
+            addCommand.execute(tasks, ui, storage);
         } catch (MyBffException exception) {
             ui.printError(exception);
         }
