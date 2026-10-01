@@ -1489,6 +1489,7 @@ bye
  Bye. Hope to see you again soon!
    ____________________________________________________________
 ```
+
 ## Automatic file saving
 
 **Aim:** Verify the file is created and replaced after each task change while the chatbot is still running.
@@ -1572,3 +1573,19 @@ send `list`, `todo next`, `bye`.
 **Expected output:** List shows `[T][X] read book`; addition confirms next and a count of two.
 The file becomes `MyBff storage v3`, `T | 1 | read book`, `T | 0 | next` on separate lines.
 Existing special-character restart tests verify pipes and backslashes survive the new format.
+
+## Persistent deletion from the JAR
+
+**Aim:** Save deletions across restarts, including an empty list, and restore the original order if saving fails.
+
+**Inputs:** In an isolated folder, add `todo first`, `todo second`, `todo third`, then `delete 2`, `bye`.
+Restart with `list`, `delete 2`, `delete 1`, `bye`; restart with `list`, `delete 1`, `bye`.
+
+**Expected output:** The first deletion confirms `[T][ ] second` and two remaining tasks.
+After restarting, list contains only first and third in that order. Deleting both leaves an empty list
+on the next restart; deleting from it reports `Invalid task number.` The save file contains only its header.
+
+**Save failure:** Start with three saved tasks, block replacement of the save file after startup,
+then enter `delete 2`, `list`, `bye`. Expect the standard save error, no deletion confirmation,
+and all three tasks in their original order.
+

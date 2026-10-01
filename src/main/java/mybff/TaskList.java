@@ -32,4 +32,9 @@ public class TaskList {
     public void add(Task task) {
         tasks.add(task);
     }
+
+    /** Inserts a task at a zero-based index, for restoring a failed deletion. */
+    public void insert(int index, Task task) {
+        tasks.add(index, task);
+    }
 }

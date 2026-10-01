@@ -81,6 +81,13 @@ public class MyBff {
                 return;
             }
             Task removedTask = tasks.delete(index);
+            try {
+                saveTasks();
+            } catch (IOException | SecurityException exception) {
+                tasks.insert(index, removedTask);
+                printSaveError();
+                return;
+            }
             ui.printTaskDeleted(removedTask, tasks.size());
         } catch (NumberFormatException exception) {
             ui.printInvalidTaskNumber();
