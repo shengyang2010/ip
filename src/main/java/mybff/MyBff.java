@@ -85,33 +85,12 @@ public class MyBff {
         }
     }
 
-    /** Validates the task number and updates the selected task's status. */
+    /** Parses a completion change, delegates execution, and reports malformed task numbers. */
     private void processCompletionCommand(String command, boolean isMarkingAsDone) {
         try {
             int index = parser.parseTaskIndex(command);
-            if (!tasks.isValidIndex(index)) {
-                ui.printInvalidTaskNumber();
-                return;
-            }
-            Task task = tasks.get(index);
-            boolean wasDone = task.getStatusIcon().equals("X");
-            if (isMarkingAsDone) {
-                task.markAsDone();
-            } else {
-                task.markAsNotDone();
-            }
-            try {
-                storage.save(tasks);
-            } catch (IOException | SecurityException exception) {
-                if (wasDone) {
-                    task.markAsDone();
-                } else {
-                    task.markAsNotDone();
-                }
-                ui.printSaveError();
-                return;
-            }
-            ui.printCompletionChanged(task, isMarkingAsDone);
+            Command completionCommand = new CompletionCommand(index, isMarkingAsDone);
+            completionCommand.execute(tasks, ui, storage);
         } catch (NumberFormatException exception) {
             ui.printInvalidTaskNumber();
         }
