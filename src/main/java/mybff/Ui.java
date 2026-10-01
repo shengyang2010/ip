@@ -80,6 +80,18 @@ public class Ui {
         System.out.println("     Invalid task number.");
     }
 
+    /** Prints the standard load failure message. */
+    public void printLoadError() {
+        System.out.println("     OOPS!!! Could not load data/mybff.txt. "
+                + "Your saved file has not been changed. Check the file and restart.");
+    }
+
+    /** Prints the standard save failure message. */
+    public void printSaveError() {
+        System.out.println("     OOPS!!! Could not save data/mybff.txt. "
+                + "No changes were made. Check the file and try again.");
+    }
+
     /** Confirms the task's updated completion status. */
     public void printCompletionChanged(Task task, boolean isMarkingAsDone) {
         if (isMarkingAsDone) {

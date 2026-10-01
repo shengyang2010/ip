@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -11,7 +12,8 @@ import java.util.Base64;
 
 /** Coordinates console interaction, command parsing, storage, and the task list. */
 public class MyBff {
-    private static final int MAX_TASKS = 100;
+    private static final int MAX_SAVE_ATTEMPTS = 5;
+    private static final long SAVE_RETRY_DELAY_MILLIS = 100;
     private static final String STORAGE_HEADER = "MyBff storage v3";
     private static final Path TASK_FILE = Path.of("data", "mybff.txt");
 
@@ -33,7 +35,7 @@ public class MyBff {
         try {
             loadTasks();
         } catch (IOException | SecurityException exception) {
-            printLoadError();
+            ui.printLoadError();
             ui.close();
             return;
         }
@@ -85,7 +87,7 @@ public class MyBff {
                 saveTasks();
             } catch (IOException | SecurityException exception) {
                 tasks.insert(index, removedTask);
-                printSaveError();
+                ui.printSaveError();
                 return;
             }
             ui.printTaskDeleted(removedTask, tasks.size());
@@ -96,10 +98,6 @@ public class MyBff {
 
     /** Parses and adds a task, reporting rejected commands and save failures. */
     private void processAddCommand(String command) {
-        if (tasks.size() >= MAX_TASKS) {
-            System.out.println("     Your task list is full.");
-            return;
-        }
         try {
             Task task = parser.createTask(command);
             tasks.add(task);
@@ -107,7 +105,7 @@ public class MyBff {
                 saveTasks();
             } catch (IOException | SecurityException exception) {
                 tasks.delete(tasks.size() - 1);
-                printSaveError();
+                ui.printSaveError();
                 return;
             }
             ui.printTaskAdded(task, tasks.size());
@@ -141,7 +139,7 @@ public class MyBff {
                 } else {
                     task.markAsNotDone();
                 }
-                printSaveError();
+                ui.printSaveError();
                 return;
             }
             ui.printCompletionChanged(task, isMarkingAsDone);
@@ -167,9 +165,6 @@ public class MyBff {
             }
             while (line != null) {
                 if (!line.isBlank()) {
-                    if (tasks.size() == MAX_TASKS) {
-                        throw new IOException("The task file exceeds the task list capacity.");
-                    }
                     tasks.add(parseSavedTask(line, isEncoded, isEscaped));
                 }
                 line = reader.readLine();
@@ -262,22 +257,31 @@ public class MyBff {
                     writer.newLine();
                 }
             }
-            Files.move(temporary, TASK_FILE, StandardCopyOption.ATOMIC_MOVE,
-                    StandardCopyOption.REPLACE_EXISTING);
+            replaceSavedFile(temporary);
         } finally {
             Files.deleteIfExists(temporary);
         }
     }
 
-    /** Prints the standard load failure message. */
-    private void printLoadError() {
-        System.out.println("     OOPS!!! Could not load data/mybff.txt. "
-                + "Your saved file has not been changed. Check the file and restart.");
+    /** Retries briefly when access to the destination is temporarily denied. */
+    private void replaceSavedFile(Path temporary) throws IOException {
+        for (int attempt = 1; ; attempt++) {
+            try {
+                Files.move(temporary, TASK_FILE, StandardCopyOption.ATOMIC_MOVE,
+                        StandardCopyOption.REPLACE_EXISTING);
+                return;
+            } catch (AccessDeniedException exception) {
+                if (attempt == MAX_SAVE_ATTEMPTS) {
+                    throw exception;
+                }
+                try {
+                    Thread.sleep(SAVE_RETRY_DELAY_MILLIS);
+                } catch (InterruptedException interrupted) {
+                    Thread.currentThread().interrupt();
+                    throw new IOException("Interrupted while waiting to save tasks.", interrupted);
+                }
+            }
+        }
     }
 
-    /** Prints the standard save failure message. */
-    private void printSaveError() {
-        System.out.println("     OOPS!!! Could not save data/mybff.txt. "
-                + "No changes were made. Check the file and try again.");
-    }
 }

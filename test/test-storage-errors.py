@@ -9,7 +9,7 @@ record = ['# Storage error sessions\n']
 load_error = ('     OOPS!!! Could not load data/mybff.txt. Your saved file has not been changed. '
               'Check the file and restart.\n')
 save_error = ('     OOPS!!! Could not save data/mybff.txt. No changes were made. '
-              'Check file access and try again.')
+              'Check the file and try again.')
 
 
 def run(folder, commands):
@@ -23,8 +23,7 @@ def run(folder, commands):
 try:
     for payload in [b'T | 2 | bad', b'Z | 0 | bad', b'T | 0', b'T | 0 | ',
                     b'D | 0 | bad', b'E | 0 | bad | noon', b'T | 0 | extra | field',
-                    b'T | 0 | valid\nmalformed', b'\xff', b'MyBff storage v2\nT | 0 | !!!',
-                    b'T | 0 | task\n' * 101]:
+                    b'T | 0 | valid\nmalformed', b'\xff', b'MyBff storage v2\nT | 0 | !!!']:
         folder = Path(tempfile.mkdtemp(dir=classes))
         (folder / 'data').mkdir()
         target = folder / 'data/mybff.txt'
@@ -52,10 +51,15 @@ try:
     folder = Path(tempfile.mkdtemp(dir=classes))
     (folder / 'data').mkdir()
     target = folder / 'data/mybff.txt'
-    target.write_text('T | 0 | task\n' * 100)
-    before = target.read_bytes()
-    output = run(folder, 'todo overflow\nbye\n')
-    assert ' Your task list is full.' in output and target.read_bytes() == before
+    target.write_text(''.join(f'T | 0 | task {i}\n' for i in range(1, 102)))
+    output = run(folder, 'list\ntodo next\nbye\n')
+    assert '     101.[T][ ] task 101\n' in output
+    assert '     Now you have 102 tasks in the list.\n' in output
+    assert target.read_text().splitlines() == (
+        ['MyBff storage v3'] + [f'T | 0 | task {i}' for i in range(1, 102)] + ['T | 0 | next'])
+    output = run(folder, 'list\nbye\n')
+    expected_list = ''.join(f'     {i}.[T][ ] task {i}\n' for i in range(1, 102))
+    assert expected_list + '     102.[T][ ] next\n' in output
     # Block replacement after startup to exercise rollback of in-memory changes.
     folder = Path(tempfile.mkdtemp(dir=classes))
     (folder / 'data').mkdir()
@@ -87,6 +91,6 @@ try:
         if process.poll() is None:
             process.kill()
             process.wait()
-    print('PASS: Malformed files, invalid encoding, capacity, blocked paths, BOM, blank lines and special text')
+    print('PASS: Malformed files, invalid encoding, large lists, blocked paths, BOM, blank lines and special text')
 finally:
     (root / 'test/storage-error-sessions.md').write_text(''.join(record), encoding='utf-8')

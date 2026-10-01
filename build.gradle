@@ -17,6 +17,11 @@ application {
     mainClass = 'mybff.MyBff'
 }
 
+// Keep the regular JAR separate from the runnable distribution JAR.
+tasks.named('jar') {
+    archiveClassifier = 'plain'
+}
+
 tasks.named('shadowJar') {
     archiveFileName = 'mybff.jar'
 }
