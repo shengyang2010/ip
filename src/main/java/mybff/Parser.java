@@ -1,6 +1,6 @@
 package mybff;
 
-/** Interprets command words and task descriptions. */
+/** Interprets command words, task numbers, and task descriptions. */
 public class Parser {
     public static final String COMMAND_DELETE = "delete";
     public static final String COMMAND_BYE = "bye";
@@ -14,6 +14,19 @@ public class Parser {
     /** Returns the first word of a command. */
     public String getCommandWord(String command) {
         return command.split("\\s+", 2)[0];
+    }
+
+    /**
+     * Converts a command's one-based task number to a list index.
+     * The caller checks whether the index identifies a task in the current list.
+     *
+     * @param command a trimmed mark, unmark, or delete command
+     * @return the task number minus one
+     * @throws NumberFormatException if the number is missing, malformed, or outside the int range
+     */
+    public int parseTaskIndex(String command) {
+        String taskNumber = command.substring(getCommandWord(command).length()).trim();
+        return Integer.parseInt(taskNumber) - 1;
     }
 
     /**

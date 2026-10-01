@@ -52,9 +52,9 @@ public class MyBff {
         if (command.equals(Parser.COMMAND_LIST)) {
             ui.printTaskList(tasks);
         } else if (commandWord.equals(Parser.COMMAND_MARK)) {
-            processCompletionCommand(command, commandWord, true);
+            processCompletionCommand(command, true);
         } else if (commandWord.equals(Parser.COMMAND_UNMARK)) {
-            processCompletionCommand(command, commandWord, false);
+            processCompletionCommand(command, false);
         } else if (commandWord.equals(Parser.COMMAND_DELETE)) {
             processDeleteCommand(command);
         } else {
@@ -64,9 +64,8 @@ public class MyBff {
 
     /** Validates the task number and removes the selected task. */
     private void processDeleteCommand(String command) {
-        String taskNumber = command.substring(Parser.COMMAND_DELETE.length()).trim();
         try {
-            int index = Integer.parseInt(taskNumber) - 1;
+            int index = parser.parseTaskIndex(command);
             if (!tasks.isValidIndex(index)) {
                 ui.printInvalidTaskNumber();
                 return;
@@ -104,11 +103,9 @@ public class MyBff {
     }
 
     /** Validates the task number and updates the selected task's status. */
-    private void processCompletionCommand(String command, String commandWord,
-            boolean isMarkingAsDone) {
-        String taskNumber = command.substring(commandWord.length()).trim();
+    private void processCompletionCommand(String command, boolean isMarkingAsDone) {
         try {
-            int index = Integer.parseInt(taskNumber) - 1;
+            int index = parser.parseTaskIndex(command);
             if (!tasks.isValidIndex(index)) {
                 ui.printInvalidTaskNumber();
                 return;
