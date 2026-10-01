@@ -50,7 +50,8 @@ public class MyBff {
     private void processCommand(String command) {
         String commandWord = parser.getCommandWord(command);
         if (command.equals(Parser.COMMAND_LIST)) {
-            ui.printTaskList(tasks);
+            Command listCommand = new ListCommand();
+            listCommand.execute(tasks, ui, storage);
         } else if (commandWord.equals(Parser.COMMAND_MARK)) {
             processCompletionCommand(command, true);
         } else if (commandWord.equals(Parser.COMMAND_UNMARK)) {
