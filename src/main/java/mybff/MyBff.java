@@ -63,23 +63,12 @@ public class MyBff {
         }
     }
 
-    /** Validates the task number and removes the selected task. */
+    /** Parses a deletion, delegates execution, and reports malformed task numbers. */
     private void processDeleteCommand(String command) {
         try {
             int index = parser.parseTaskIndex(command);
-            if (!tasks.isValidIndex(index)) {
-                ui.printInvalidTaskNumber();
-                return;
-            }
-            Task removedTask = tasks.delete(index);
-            try {
-                storage.save(tasks);
-            } catch (IOException | SecurityException exception) {
-                tasks.insert(index, removedTask);
-                ui.printSaveError();
-                return;
-            }
-            ui.printTaskDeleted(removedTask, tasks.size());
+            Command deleteCommand = new DeleteCommand(index);
+            deleteCommand.execute(tasks, ui, storage);
         } catch (NumberFormatException exception) {
             ui.printInvalidTaskNumber();
         }
