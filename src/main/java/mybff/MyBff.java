@@ -34,11 +34,9 @@ public class MyBff {
             while (ui.hasNextCommand()) {
                 String command = ui.readCommand();
                 ui.printSeparator();
-                if (command.equals(Parser.COMMAND_BYE)) {
-                    ui.printFarewell();
+                if (processCommand(command)) {
                     break;
                 }
-                processCommand(command);
                 ui.printResponseEnd();
             }
         } finally {
@@ -46,10 +44,14 @@ public class MyBff {
         }
     }
 
-    /** Routes each command to the appropriate task operation. */
-    private void processCommand(String command) {
+    /** Routes each command to its operation and returns whether the application should stop. */
+    private boolean processCommand(String command) {
         String commandWord = parser.getCommandWord(command);
-        if (command.equals(Parser.COMMAND_LIST)) {
+        if (command.equals(Parser.COMMAND_BYE)) {
+            Command exitCommand = new ExitCommand();
+            exitCommand.execute(tasks, ui, storage);
+            return exitCommand.isExit();
+        } else if (command.equals(Parser.COMMAND_LIST)) {
             Command listCommand = new ListCommand();
             listCommand.execute(tasks, ui, storage);
         } else if (commandWord.equals(Parser.COMMAND_MARK)) {
@@ -61,6 +63,7 @@ public class MyBff {
         } else {
             processAddCommand(command);
         }
+        return false;
     }
 
     /** Parses a deletion, delegates execution, and reports malformed task numbers. */

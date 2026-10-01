@@ -10,4 +10,9 @@ public abstract class Command {
      * @param storage the storage used by commands that change tasks
      */
     public abstract void execute(TaskList tasks, Ui ui, Storage storage);
+
+    /** Returns whether the application should stop after executing this command. */
+    public boolean isExit() {
+        return false;
+    }
 }
