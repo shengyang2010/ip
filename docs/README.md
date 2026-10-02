@@ -1,28 +1,25 @@
 # MyBff User Guide
 
-MyBff is a terminal chatbot that keeps track of your to-dos, deadlines, and events. Type a command, press **Enter**, and let MyBff keep your task list organised.
+MyBff is a terminal chatbot for your to-dos, deadlines, and events. Type a command and press **Enter** to manage your tasks.
 
 ## Quick start
 
 1. Install **Java 25**. Check your version with `java -version`.
-2. Place `mybff.jar` in a folder of your choice. If you need to build it first, follow the [build instructions](../README.md#building-and-running-a-fat-jar).
-3. Open a terminal in that folder and run:
+2. Open [A-Release](https://github.com/shengyang2010/ip/releases/tag/A-Release) and download the **`.jar`** file under **Assets**, not a source-code archive.
+3. Save it in a folder of your choice and rename it to `mybff.jar` if needed.
+4. Open a terminal in that folder and run:
 
    ```text
    java -jar mybff.jar
    ```
 
-4. Try `todo read book`, then `list`. Type `bye` when you are finished.
+5. Try `todo read book`, then `list`. Type `bye` to exit.
+
+Start MyBff from the same folder each time to load your saved tasks. No build is needed to use the release JAR.
 
 ## Features
 
-### Command basics
-
-- Enter one command per line, using lowercase command words.
-- Replace uppercase placeholders such as `DESCRIPTION` with your own text; do not type the placeholders themselves.
-- Keep the order and spaces around `/by`, `/from`, and `/to` shown in the examples.
-- Dates and times are stored as text, so you can use values such as `Friday` or `2 Oct 2026 18:00`. MyBff does not validate dates or send reminders.
-- For `mark`, `unmark`, and `delete`, use a positive task number from the latest **`list`** output.
+Use lowercase command words. Replace uppercase placeholders with your own text, keeping the order and spaces around `/by`, `/from`, and `/to` shown below. Dates and times are plain text: MyBff does not validate them or send reminders.
 
 ### Add a to-do: `todo`
 
@@ -32,8 +29,6 @@ Adds a task without a date or time.
 
 **Example:** `todo read book`
 
-MyBff confirms the new task and the total number of tasks. The task appears as `[T][ ] read book`.
-
 ### Add a deadline: `deadline`
 
 Adds a task with a due date or time.
@@ -41,8 +36,6 @@ Adds a task with a due date or time.
 **Format:** `deadline DESCRIPTION /by WHEN`
 
 **Example:** `deadline submit report /by Friday 18:00`
-
-The task appears as `[D][ ] submit report (by: Friday 18:00)`.
 
 ### Add an event: `event`
 
@@ -52,15 +45,11 @@ Adds a task with a start and end time.
 
 **Example:** `event team meeting /from Monday 14:00 /to Monday 15:00`
 
-The task appears as `[E][ ] team meeting (from: Monday 14:00 to: Monday 15:00)`.
+Each addition confirms the new task and total task count.
 
 ### View all tasks: `list`
 
-Shows all tasks, including completed ones, in the order you added them.
-
-**Format and example:** `list`
-
-After adding the three examples above, the list looks like this:
+Enter `list` to show all tasks, including completed ones, in the order you added them. After adding the examples above:
 
 ```text
 Here are the tasks in your list:
@@ -69,54 +58,78 @@ Here are the tasks in your list:
 3.[E][ ] team meeting (from: Monday 14:00 to: Monday 15:00)
 ```
 
-`[T]` means to-do, `[D]` deadline, and `[E]` event. `[ ]` means not done; `[X]` means done. An empty list shows only the heading.
+`[T]` means to-do, `[D]` deadline, and `[E]` event. `[ ]` means not done; `[X]` means done.
 
 ### Find tasks: `find`
 
-Finds tasks whose **descriptions** contain your search text. Dates and times are not searched.
-
 **Format:** `find KEYWORD`
 
-**Example:** `find book` matches `read book` and `buy books`, but not `read Book`: searches are **case-sensitive**. Multiple words are matched as one phrase, so `find read book` looks for that exact phrase.
+Searches task descriptions only. Matching is **case-sensitive** and includes parts of words: `find book` matches `read book` and `buy books`, but not `read Book`. Multiple words are matched as one exact phrase. No matches means only the results heading is shown.
 
-If nothing matches, MyBff shows the matching-tasks heading with no tasks below it.
+> Search results have separate numbering. Before using `mark`, `unmark`, or `delete`, run `list` and use the task's number from the full list.
 
-> Search results are numbered from 1 separately. Run `list` before marking or deleting a task, and use its number from the full list.
-
-### Mark a task as done or not done: `mark` / `unmark`
-
-Changes a task's completion status without removing it.
+### Change completion status: `mark` / `unmark`
 
 **Formats:** `mark NUMBER` and `unmark NUMBER`
 
-**Examples:** `mark 1` marks the first task in the full list as done (`[X]`). `unmark 1` changes it back to not done (`[ ]`). MyBff confirms the updated status and task description.
+**Examples:** `mark 1` marks the first task as done (`[X]`). `unmark 1` changes it back to not done (`[ ]`). The task stays in your list.
 
 ### Delete a task: `delete`
 
-Removes a task and confirms the remaining task count.
-
 **Format:** `delete NUMBER`
 
-**Example:** `delete 2` removes the second task in the full list.
+**Example:** `delete 2` removes the second task and confirms the remaining count.
 
-Deletion is immediate and has no undo command. Remaining tasks are renumbered, so run `list` again before your next change.
+Deletion is immediate, with no undo. Remaining tasks are renumbered, so run `list` before your next change. Task numbers must be positive and refer to an existing task.
 
 ### Exit: `bye`
 
-**Format and example:** `bye`
+Enter `bye` to close MyBff.
 
-MyBff says goodbye and closes.
+### Automatic saving
 
-### Save your tasks automatically
+Every successful addition, deletion, or status change is saved to `data/mybff.txt` in the folder you run MyBff from. Tasks reload on startup; no save command is needed.
 
-MyBff saves every successful addition, deletion, or status change to `data/mybff.txt` and reloads your tasks on startup. There is no save command.
+To back up or move your tasks, close MyBff and copy the `data` folder along with the JAR.
 
-The `data` folder is relative to the folder your terminal runs MyBff from. Always start from the same folder to use the same task list. To back up or transfer your tasks, close MyBff and copy `data/mybff.txt` along with the JAR, keeping the same folder structure.
+## Troubleshooting
 
-## If something goes wrong
-
+- **Java not found:** Check your Java installation and `PATH`, then reopen the terminal.
+- **Unable to access jarfile:** Check the JAR's name and open a terminal in its folder.
 - **Unknown command:** Check spelling and lowercase letters. Enter `list` and `bye` on their own.
-- **Invalid task number:** Run `list` and choose an existing number, starting at 1.
-- **Empty to-do or search:** Add a description after `todo` or search text after `find`.
-- **Could not save:** The attempted change was cancelled. Check that the data folder is writable and the file is not locked, then retry the command.
-- **Could not load:** MyBff stops and leaves your saved file unchanged. Check that the file is readable, or restore a known-good backup, then restart.
+- **Invalid task number:** Run `list` and use an existing number, starting at 1.
+- **Empty to-do or search:** Supply a description after `todo` or text after `find`.
+- **Could not save:** The change was cancelled. Check folder permissions and file locks, then retry.
+- **Could not load:** MyBff stops without changing your file. Check that it is readable or restore a backup, then restart.
+
+## Optional: build from source
+
+1. Install **JDK 25**. Both `java -version` and `javac -version` should report 25. If set, `JAVA_HOME` must point to that JDK.
+2. Open the [repository](https://github.com/shengyang2010/ip), select **Code > Download ZIP**, and extract it. Alternatively, with Git installed:
+
+   ```sh
+   git clone https://github.com/shengyang2010/ip.git
+   cd ip
+   ```
+
+3. Open a terminal in the project folder containing `build.gradle`, not `docs`. Build using the command for your system:
+
+   **Windows PowerShell:**
+
+   ```powershell
+   .\gradlew.bat shadowJar
+   ```
+
+   **macOS/Linux:**
+
+   ```sh
+   sh ./gradlew shadowJar
+   ```
+
+4. Wait for `BUILD SUCCESSFUL`, then run:
+
+   ```text
+   java -jar build/libs/mybff.jar
+   ```
+
+The first build needs internet access to download dependencies. No separate Gradle installation is needed. The output is `build/libs/mybff.jar`; rebuild after changing the source.
