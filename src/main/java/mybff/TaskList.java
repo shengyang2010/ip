@@ -14,6 +14,17 @@ public class TaskList {
         return tasks.get(index);
     }
 
+    /** Returns tasks whose descriptions contain the case-sensitive keyword, in insertion order. */
+    public TaskList find(String keyword) {
+        TaskList matches = new TaskList();
+        for (Task task : tasks) {
+            if (task.getDescription().contains(keyword)) {
+                matches.add(task);
+            }
+        }
+        return matches;
+    }
+
     /** Reports whether the zero-based index identifies a stored task. */
     public boolean isValidIndex(int index) {
         return index >= 0 && index < tasks.size();

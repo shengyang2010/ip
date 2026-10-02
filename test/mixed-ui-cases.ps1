@@ -4,6 +4,28 @@ $listHeader = '     Here are the tasks in your list:'
 $invalidNumber = '     Invalid task number.'
 $mixedCases = @(
     @{
+        Name = 'Find tasks by description'
+        Aim = 'Match case-sensitive substrings across task types, preserve order and status, and handle empty searches'
+        Steps = @(
+            @{ Input='find book'; Output=@('     Here are the matching tasks in your list:') }
+            @{ Input='todo read book'; Output=@("     Got it. I've added this task:", '       [T][ ] read book', '     Now you have 1 tasks in the list.') }
+            @{ Input='todo unrelated'; Output=@("     Got it. I've added this task:", '       [T][ ] unrelated', '     Now you have 2 tasks in the list.') }
+            @{ Input='deadline return book /by June 6th'; Output=@("     Got it. I've added this task:", '       [D][ ] return book (by: June 6th)', '     Now you have 3 tasks in the list.') }
+            @{ Input='event book club /from noon /to evening'; Output=@("     Got it. I've added this task:", '       [E][ ] book club (from: noon to: evening)', '     Now you have 4 tasks in the list.') }
+            @{ Input='mark 1'; Output=@("     Nice! I've marked this task as done:", '       [X] read book') }
+            @{ Input="  find`t book  "; Output=@('     Here are the matching tasks in your list:', '     1.[T][X] read book', '     2.[D][ ] return book (by: June 6th)', '     3.[E][ ] book club (from: noon to: evening)') }
+            @{ Input='find ook'; Output=@('     Here are the matching tasks in your list:', '     1.[T][X] read book', '     2.[D][ ] return book (by: June 6th)', '     3.[E][ ] book club (from: noon to: evening)') }
+            @{ Input='find return book'; Output=@('     Here are the matching tasks in your list:', '     1.[D][ ] return book (by: June 6th)') }
+            @{ Input='find Book'; Output=@('     Here are the matching tasks in your list:') }
+            @{ Input='find June'; Output=@('     Here are the matching tasks in your list:') }
+            @{ Input='find missing'; Output=@('     Here are the matching tasks in your list:') }
+            @{ Input='find'; Output=@('     OOPS!!! The keyword for find cannot be empty.') }
+            @{ Input="find `t "; Output=@('     OOPS!!! The keyword for find cannot be empty.') }
+            @{ Input='finder book'; Output=@($unknown) }
+            @{ Input='list'; Output=@($listHeader, '     1.[T][X] read book', '     2.[T][ ] unrelated', '     3.[D][ ] return book (by: June 6th)', '     4.[E][ ] book club (from: noon to: evening)') }
+        )
+    },
+    @{
         Name = 'Errors between additions and completion changes'
         Aim = 'Check counts, ordering and completion flags immediately after rejected inputs'
         Steps = @(

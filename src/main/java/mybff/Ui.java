@@ -56,6 +56,14 @@ public class Ui {
         }
     }
 
+    /** Displays matching tasks numbered from one, or an empty result header if none match. */
+    public void printMatchingTasks(TaskList matches) {
+        System.out.println("     Here are the matching tasks in your list:");
+        for (int i = 0; i < matches.size(); i++) {
+            System.out.println("     " + (i + 1) + "." + matches.get(i));
+        }
+    }
+
     /** Confirms a task addition and the new list size. */
     public void printTaskAdded(Task task, int taskCount) {
         System.out.println("     Got it. I've added this task:");

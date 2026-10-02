@@ -5,6 +5,7 @@ public class Parser {
     private static final String COMMAND_DELETE = "delete";
     private static final String COMMAND_BYE = "bye";
     private static final String COMMAND_LIST = "list";
+    private static final String COMMAND_FIND = "find";
     private static final String COMMAND_MARK = "mark";
     private static final String COMMAND_UNMARK = "unmark";
     private static final String COMMAND_TODO = "todo";
@@ -27,6 +28,13 @@ public class Parser {
             return new ListCommand();
         }
         String commandWord = getCommandWord(command);
+        if (commandWord.equals(COMMAND_FIND)) {
+            String keyword = command.substring(COMMAND_FIND.length()).trim();
+            if (keyword.isEmpty()) {
+                throw new MyBffException("The keyword for find cannot be empty.");
+            }
+            return new FindCommand(keyword);
+        }
         if (commandWord.equals(COMMAND_MARK)) {
             return new CompletionCommand(parseTaskIndex(command), true);
         }

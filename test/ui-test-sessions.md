@@ -188,6 +188,131 @@ Actual output:
    ____________________________________________________________
 ```
 
+## Find tasks by description: True
+
+Input:
+```text
+find book
+todo read book
+todo unrelated
+deadline return book /by June 6th
+event book club /from noon /to evening
+mark 1
+  find	 book  
+find ook
+find return book
+find Book
+find June
+find missing
+find
+find 	 
+finder book
+list
+bye
+```
+Actual output:
+```text
+    ____________________________________________________________
+     __  ____   ______  ______ ______ 
+     |  \/  \ \ / /  _ \|  ____|  ____|
+     | \  / |\ V /| |_) | |__  | |__   
+     | |\/| | | | |  _ <|  __| |  __|  
+     | |  | | |.| | |_) | |    | |     
+     |_|  |_| |_| |____/|_|    |_|     
+
+     Hello! I'm MyBff.
+     What can I do for you?
+    ____________________________________________________________
+
+    ____________________________________________________________
+     Here are the matching tasks in your list:
+    ____________________________________________________________
+
+    ____________________________________________________________
+     Got it. I've added this task:
+       [T][ ] read book
+     Now you have 1 tasks in the list.
+    ____________________________________________________________
+
+    ____________________________________________________________
+     Got it. I've added this task:
+       [T][ ] unrelated
+     Now you have 2 tasks in the list.
+    ____________________________________________________________
+
+    ____________________________________________________________
+     Got it. I've added this task:
+       [D][ ] return book (by: June 6th)
+     Now you have 3 tasks in the list.
+    ____________________________________________________________
+
+    ____________________________________________________________
+     Got it. I've added this task:
+       [E][ ] book club (from: noon to: evening)
+     Now you have 4 tasks in the list.
+    ____________________________________________________________
+
+    ____________________________________________________________
+     Nice! I've marked this task as done:
+       [X] read book
+    ____________________________________________________________
+
+    ____________________________________________________________
+     Here are the matching tasks in your list:
+     1.[T][X] read book
+     2.[D][ ] return book (by: June 6th)
+     3.[E][ ] book club (from: noon to: evening)
+    ____________________________________________________________
+
+    ____________________________________________________________
+     Here are the matching tasks in your list:
+     1.[T][X] read book
+     2.[D][ ] return book (by: June 6th)
+     3.[E][ ] book club (from: noon to: evening)
+    ____________________________________________________________
+
+    ____________________________________________________________
+     Here are the matching tasks in your list:
+     1.[D][ ] return book (by: June 6th)
+    ____________________________________________________________
+
+    ____________________________________________________________
+     Here are the matching tasks in your list:
+    ____________________________________________________________
+
+    ____________________________________________________________
+     Here are the matching tasks in your list:
+    ____________________________________________________________
+
+    ____________________________________________________________
+     Here are the matching tasks in your list:
+    ____________________________________________________________
+
+    ____________________________________________________________
+     OOPS!!! The keyword for find cannot be empty.
+    ____________________________________________________________
+
+    ____________________________________________________________
+     OOPS!!! The keyword for find cannot be empty.
+    ____________________________________________________________
+
+    ____________________________________________________________
+     OOPS!!! I'm sorry, but I don't know what that means :-(
+    ____________________________________________________________
+
+    ____________________________________________________________
+     Here are the tasks in your list:
+     1.[T][X] read book
+     2.[T][ ] unrelated
+     3.[D][ ] return book (by: June 6th)
+     4.[E][ ] book club (from: noon to: evening)
+    ____________________________________________________________
+
+    ____________________________________________________________
+ Bye. Hope to see you again soon!
+   ____________________________________________________________
+```
+
 ## Errors between additions and completion changes: True
 
 Input:
