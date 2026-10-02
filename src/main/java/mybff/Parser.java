@@ -2,17 +2,45 @@ package mybff;
 
 /** Interprets command words, task numbers, and task descriptions. */
 public class Parser {
-    public static final String COMMAND_DELETE = "delete";
-    public static final String COMMAND_BYE = "bye";
-    public static final String COMMAND_LIST = "list";
-    public static final String COMMAND_MARK = "mark";
-    public static final String COMMAND_UNMARK = "unmark";
-    public static final String COMMAND_TODO = "todo";
-    public static final String COMMAND_DEADLINE = "deadline";
-    public static final String COMMAND_EVENT = "event";
+    private static final String COMMAND_DELETE = "delete";
+    private static final String COMMAND_BYE = "bye";
+    private static final String COMMAND_LIST = "list";
+    private static final String COMMAND_MARK = "mark";
+    private static final String COMMAND_UNMARK = "unmark";
+    private static final String COMMAND_TODO = "todo";
+    private static final String COMMAND_DEADLINE = "deadline";
+    private static final String COMMAND_EVENT = "event";
+
+    /**
+     * Creates an executable command without changing tasks or interacting with the user.
+     *
+     * @param command the user input with surrounding whitespace removed
+     * @return the command representing the requested operation
+     * @throws MyBffException if the command is unknown or a task description is invalid
+     * @throws NumberFormatException if a task number is missing, malformed, or outside the int range
+     */
+    public Command parse(String command) throws MyBffException {
+        if (command.equals(COMMAND_BYE)) {
+            return new ExitCommand();
+        }
+        if (command.equals(COMMAND_LIST)) {
+            return new ListCommand();
+        }
+        String commandWord = getCommandWord(command);
+        if (commandWord.equals(COMMAND_MARK)) {
+            return new CompletionCommand(parseTaskIndex(command), true);
+        }
+        if (commandWord.equals(COMMAND_UNMARK)) {
+            return new CompletionCommand(parseTaskIndex(command), false);
+        }
+        if (commandWord.equals(COMMAND_DELETE)) {
+            return new DeleteCommand(parseTaskIndex(command));
+        }
+        return new AddCommand(createTask(command));
+    }
 
     /** Returns the first word of a command. */
-    public String getCommandWord(String command) {
+    private String getCommandWord(String command) {
         return command.split("\\s+", 2)[0];
     }
 
@@ -24,7 +52,7 @@ public class Parser {
      * @return the task number minus one
      * @throws NumberFormatException if the number is missing, malformed, or outside the int range
      */
-    public int parseTaskIndex(String command) {
+    private int parseTaskIndex(String command) {
         String taskNumber = command.substring(getCommandWord(command).length()).trim();
         return Integer.parseInt(taskNumber) - 1;
     }
@@ -34,7 +62,7 @@ public class Parser {
      *
      * @throws MyBffException if the command is unknown or the todo description is empty
      */
-    public Task createTask(String command) throws MyBffException {
+    private Task createTask(String command) throws MyBffException {
         if (command.startsWith(COMMAND_DEADLINE + " ")) {
             String[] deadlineParts = command.substring(COMMAND_DEADLINE.length())
                     .trim().split(" /by ", 2);
