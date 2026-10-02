@@ -12,16 +12,19 @@ public class Event extends Task {
         this.to = to;
     }
 
+    /** Returns the event type marker. */
     @Override
     public String getTypeIcon() {
         return "E";
     }
 
+    /** Returns the stored task fields with the encoded start and end times appended. */
     @Override
     public String toStorageString() {
         return super.toStorageString() + " | " + encodeField(from) + " | " + encodeField(to);
     }
 
+    /** Returns the task's display representation, including its start and end times. */
     @Override
     public String toString() {
         return super.toString() + " (from: " + from + " to: " + to + ")";

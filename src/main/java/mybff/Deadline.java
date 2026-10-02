@@ -10,16 +10,19 @@ public class Deadline extends Task {
         this.by = by;
     }
 
+    /** Returns the deadline type marker. */
     @Override
     public String getTypeIcon() {
         return "D";
     }
 
+    /** Returns the stored task fields with the encoded deadline appended. */
     @Override
     public String toStorageString() {
         return super.toStorageString() + " | " + encodeField(by);
     }
 
+    /** Returns the task's display representation, including its deadline. */
     @Override
     public String toString() {
         return super.toString() + " (by: " + by + ")";

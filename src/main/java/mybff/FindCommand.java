@@ -9,6 +9,7 @@ public class FindCommand extends Command {
         this.keyword = keyword;
     }
 
+    /** Displays tasks whose descriptions contain the keyword in their original order. */
     @Override
     public void execute(TaskList tasks, Ui ui, Storage storage) {
         ui.printMatchingTasks(tasks.find(keyword));

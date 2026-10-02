@@ -15,6 +15,7 @@ public class AddCommand extends Command {
         this.task = task;
     }
 
+    /** Adds and saves the task, rolling back the addition if saving fails. */
     @Override
     public void execute(TaskList tasks, Ui ui, Storage storage) {
         tasks.add(task);

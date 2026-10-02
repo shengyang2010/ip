@@ -6,10 +6,18 @@ import java.util.ArrayList;
 public class TaskList {
     private final ArrayList<Task> tasks = new ArrayList<>();
 
+    /** Returns the number of tasks currently in the list. */
     public int size() {
         return tasks.size();
     }
 
+    /**
+     * Returns the task at a zero-based index.
+     *
+     * @param index the position of the task to retrieve
+     * @return the task at the specified position
+     * @throws IndexOutOfBoundsException if the index does not identify a stored task
+     */
     public Task get(int index) {
         return tasks.get(index);
     }

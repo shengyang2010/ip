@@ -18,6 +18,7 @@ public class CompletionCommand extends Command {
         this.isMarkingAsDone = isMarkingAsDone;
     }
 
+    /** Updates and saves a valid task's status, restoring its previous status if saving fails. */
     @Override
     public void execute(TaskList tasks, Ui ui, Storage storage) {
         if (!tasks.isValidIndex(index)) {

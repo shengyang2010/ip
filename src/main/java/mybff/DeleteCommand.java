@@ -16,6 +16,7 @@ public class DeleteCommand extends Command {
         this.index = index;
     }
 
+    /** Deletes and saves a valid task, restoring its original position if saving fails. */
     @Override
     public void execute(TaskList tasks, Ui ui, Storage storage) {
         if (!tasks.isValidIndex(index)) {
